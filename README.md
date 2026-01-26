@@ -1,73 +1,172 @@
-# Welcome to your Lovable project
+# 🎓 Nexo Assistente - Assistente Educacional Virtual
 
-## Project info
+Sistema de chat inteligente para consulta de documentos institucionais educacionais. Desenvolvido para secretarias municipais de educação, permite que gestores, coordenadores e diretores façam perguntas naturais sobre documentos e recebam respostas contextualizadas.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Deploy no Render
 
-## How can I edit this code?
+**Para fazer deploy no Render, consulte:** [DEPLOY_RENDER.md](./DEPLOY_RENDER.md)
 
-There are several ways of editing your application.
+## 📋 Funcionalidades
 
-**Use Lovable**
+- 🤖 Chat com IA integrada (Google Gemini 3 Flash via Lovable API)
+- 📚 Suporte para múltiplos formatos de documentos (PDF, DOCX, XLSX, CSV, TXT)
+- 🔐 Sistema robusto de autenticação e permissões (RBAC)
+- 🏢 Gestão de unidades escolares e usuários
+- 📊 Extração e classificação automática de documentos
+- 🔍 Busca full-text otimizada
+- 📱 Interface responsiva e moderna
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🛠️ Tecnologias
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend:** React 18 + TypeScript + Vite
+- **UI:** Shadcn/ui + Tailwind CSS
+- **Backend:** Supabase (PostgreSQL + Edge Functions)
+- **IA:** Lovable AI Gateway (Gemini 3 Flash)
+- **Autenticação:** Supabase Auth
 
-**Use your preferred IDE**
+## 📦 Como rodar localmente
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Pré-requisitos
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+ (recomendado: 18.19.0)
+- npm ou bun
+- Conta no Supabase (já configurada)
 
-Follow these steps:
+### Instalação
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Clone o repositório
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Clone o repositório:
+```bash
+git clone <URL_DO_SEU_REPOSITORIO>
+cd Nexo_assistente
 ```
 
-**Edit a file directly in GitHub**
+2. Instale as dependências:
+```bash
+npm install
+# ou
+bun install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Configure as variáveis de ambiente:
+   - Copie o arquivo `.env` (ou crie um novo)
+   - As variáveis já estão configuradas para o Supabase
 
-**Use GitHub Codespaces**
+4. Inicie o servidor de desenvolvimento:
+```bash
+npm run dev
+# ou
+bun dev
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+5. Acesse: http://localhost:8080
 
-## What technologies are used for this project?
+## 🏗️ Estrutura do Projeto
 
-This project is built with:
+```
+src/
+├── components/        # Componentes React
+│   ├── ui/           # Componentes base (Shadcn)
+│   ├── ChatArea.tsx  # Interface principal do chat
+│   ├── Header.tsx
+│   └── ...
+├── contexts/         # Contextos React (AuthContext)
+├── hooks/           # Custom hooks
+├── pages/           # Páginas da aplicação
+│   ├── Index.tsx         # Chat principal
+│   ├── Auth.tsx          # Login/Cadastro
+│   ├── UsersAdmin.tsx    # Gestão de usuários
+│   └── DocumentsAdmin.tsx # Gestão de documentos
+├── integrations/    # Integrações externas
+│   └── supabase/    # Cliente Supabase
+└── types/           # TypeScript types
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+supabase/
+├── functions/       # Edge Functions
+│   ├── chat-query/           # Processa perguntas do chat
+│   ├── documents-ingest/     # Ingere documentos
+│   └── admin-users/          # Administração de usuários
+└── migrations/      # Migrações do banco de dados
+```
 
-## How can I deploy this project?
+## 🔐 Sistema de Permissões
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+O sistema possui 4 níveis hierárquicos:
 
-## Can I connect a custom domain to my Lovable project?
+1. **TI** (mais alto): Acesso total, gerencia usuários e documentos
+2. **Secretaria**: Visualiza todas as unidades
+3. **Coordenação**: Acesso à sua unidade e algumas outras
+4. **Diretor**: Acesso apenas à sua unidade
 
-Yes, you can!
+## 📚 Banco de Dados
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+O banco utiliza PostgreSQL (via Supabase) com:
+- Row Level Security (RLS) para segurança
+- Full-text search para busca otimizada
+- Auditoria de todas as ações
+- Migrações versionadas
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Principais tabelas:
+- `profiles`: Dados dos usuários
+- `user_roles`: Permissões
+- `units`: Unidades escolares
+- `documents`: Metadados dos documentos
+- `conversations` e `chat_messages`: Histórico do chat
+
+## 🔧 Scripts Disponíveis
+
+```bash
+npm run dev          # Desenvolvimento
+npm run build        # Build para produção
+npm run preview      # Preview do build
+npm run lint         # Linter
+npm run test         # Testes
+```
+
+## 🌐 Deploy
+
+### Render (Recomendado)
+
+Consulte o guia completo: [DEPLOY_RENDER.md](./DEPLOY_RENDER.md)
+
+### Outras Plataformas
+
+O projeto também pode ser deployado em:
+- Vercel
+- Netlify
+- Railway
+- Fly.io
+
+## 📝 Configuração do Supabase
+
+As Edge Functions requerem a variável:
+- `LOVABLE_API_KEY`: Chave da API Lovable AI
+
+Configure via CLI do Supabase:
+```bash
+supabase secrets set LOVABLE_API_KEY=sua_chave_aqui
+```
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto foi desenvolvido para uso institucional educacional.
+
+## 🆘 Suporte
+
+Para problemas ou dúvidas:
+- Verifique os logs no Supabase Dashboard
+- Consulte a documentação do Render
+- Revise o arquivo DEPLOY_RENDER.md
+
+---
+
+**Desenvolvido com ❤️ usando Lovable, React, Supabase e IA**
