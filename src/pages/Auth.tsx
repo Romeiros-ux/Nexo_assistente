@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { BookOpen, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import logoImage from "@/assets/logo.png";
  
  export default function Auth() {
   const { signIn } = useAuth();
@@ -34,16 +35,18 @@ import { useNavigate } from "react-router-dom";
      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
        <Card className="w-full max-w-md shadow-lg">
          <CardHeader className="space-y-1 text-center">
-           <div className="flex items-center justify-center gap-3 mb-2">
-             <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
-               <BookOpen className="w-7 h-7 text-primary" />
-             </div>
+           <div className="flex items-center justify-center mb-2">
+             <img 
+               src={logoImage} 
+               alt="Nexo - Assistente Educacional" 
+               className="w-20 h-20 object-contain"
+             />
            </div>
            <h1 className="text-2xl font-serif font-semibold text-foreground">
-             Assistente Educacional
+             Nexo
            </h1>
            <p className="text-sm text-muted-foreground">
-             Secretaria de Educação
+             Assistente Educacional
            </p>
          </CardHeader>
          <CardContent>

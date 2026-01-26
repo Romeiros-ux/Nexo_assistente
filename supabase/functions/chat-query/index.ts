@@ -41,6 +41,72 @@ type DocMatch = {
   rank: number;
 };
 
+function looksLikeTotalEmployeesQuestion(query: string) {
+  const q = query.toLowerCase();
+  const hasEmployees = /(funcion|servidor|colaborador)/.test(q);
+  const hasTotal = /(total|quantos|quantidade|soma)/.test(q);
+  // Intenção: perguntas sobre total de pessoal (normalmente por secretaria/unidade)
+  return hasEmployees && hasTotal;
+}
+
+function looksLikeEducationSecretariatQuestion(query: string) {
+  const q = query.toLowerCase();
+  const hasSecretariat = /\bsecretaria\b/.test(q);
+  const hasEducation = /(educa|smec)/.test(q);
+  return hasSecretariat && hasEducation;
+}
+
+function countLinesContainingNeedle(extractedText: string, needle: string) {
+  if (!extractedText) return 0;
+  const n = needle.toLowerCase();
+  const lines = extractedText.split(/\r?\n/);
+  let count = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+    // pula cabeçalho típico
+    if (i === 0 && /(matr[íi]cula|nome\s+divis[aã]o|nome\s+cargo)/i.test(line)) continue;
+    if (line.toLowerCase().includes(n)) count += 1;
+  }
+  return count;
+}
+
+function trySumCargoQuantCsv(extractedText: string): { total: number; rows: number } | null {
+  if (!extractedText) return null;
+  const head = extractedText.slice(0, 80).toLowerCase();
+  // Heurística: CSV típico do documento "Cargo Atual,Quant."
+  if (!head.includes("cargo") || !head.includes("quant")) return null;
+
+  const lines = extractedText
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length < 2) return null;
+
+  let total = 0;
+  let rows = 0;
+
+  // pula cabeçalho
+  for (const line of lines.slice(1)) {
+    const lastComma = line.lastIndexOf(",");
+    if (lastComma === -1) continue;
+
+    const qtyRaw = line.slice(lastComma + 1).trim();
+    // Mantém apenas dígitos (aceita "1", "1.234", etc.)
+    const qtyDigits = qtyRaw.replace(/[^0-9]/g, "");
+    if (!qtyDigits) continue;
+
+    const qty = Number.parseInt(qtyDigits, 10);
+    if (!Number.isFinite(qty)) continue;
+
+    total += qty;
+    rows += 1;
+  }
+
+  if (rows === 0) return null;
+  return { total, rows };
+}
+
 function normalizeSpaces(s: string) {
   return s.replace(/\s+/g, " ").trim();
 }
@@ -259,6 +325,81 @@ Deno.serve(async (req) => {
     const userRole = roleData || "usuário";
     const userUnit = profileData?.unit_id ? "(unidade vinculada)" : "Global";
 
+    // Atalho: perguntas de total de funcionários.
+    // Quando houver um documento no formato "Cargo Atual,Quant.", somamos de forma determinística
+    // (evita depender da IA para fazer contas e evita respostas de "não encontrado").
+    if (looksLikeEducationSecretariatQuestion(query)) {
+      // Para "secretaria de educação", tentamos contar diretamente no cadastro nominal (CSV grande)
+      // usando um needle robusto, pois o CSV pode conter vírgulas dentro do nome da divisão.
+      const needle = "Secretaria Municipal de Educ";
+      const { data: staffDocs } = await userClient
+        .from("documents")
+        .select("id, title, extracted_text")
+        .eq("status", "vigente")
+        .or(
+          [
+            "title.ilike.%Cadastro de trabalhadores%",
+            "title.ilike.%Matrícula e cargo%",
+            "title.ilike.%Matricula e cargo%",
+          ].join(","),
+        )
+        .limit(3);
+
+      if (Array.isArray(staffDocs) && staffDocs.length > 0) {
+        // Preferimos o maior (normalmente o cadastro completo)
+        const sorted = [...(staffDocs as any[])].sort(
+          (a, b) => String(b.extracted_text ?? "").length - String(a.extracted_text ?? "").length,
+        );
+
+        for (const d of sorted) {
+          const text = String(d.extracted_text ?? "");
+          const count = countLinesContainingNeedle(text, needle);
+          if (count <= 0) continue;
+
+          const answer =
+            `📌 Resposta\n\n` +
+            `Nos documentos fornecidos, foram encontrados **${count}** registro(s) de funcionários vinculados à **Secretaria Municipal de Educação** (linhas contendo "${needle}").\n\n` +
+            `Observação: esta contagem é baseada no cadastro nominal (linhas do CSV) e depende exatamente de como a lotação/divisão está preenchida no documento.\n\n` +
+            `Fontes consultadas:\n- ${d.title}`;
+
+          return jsonResponse(200, {
+            answer,
+            sources: [{ documentId: d.id, documentName: d.title }],
+          });
+        }
+      }
+      // Se não achou em cadastro nominal, cai no fluxo padrão (IA)
+    }
+
+    if (looksLikeTotalEmployeesQuestion(query)) {
+      const { data: maybeTotals } = await userClient
+        .from("documents")
+        .select("id, title, extracted_text")
+        .eq("status", "vigente")
+        .ilike("extracted_text", "Cargo Atual,Quant%")
+        .limit(3);
+
+      if (Array.isArray(maybeTotals) && maybeTotals.length > 0) {
+        for (const d of maybeTotals as any[]) {
+          const sum = trySumCargoQuantCsv(String(d.extracted_text ?? ""));
+          if (!sum) continue;
+
+          // Observação: o documento pode representar o quadro geral; deixamos explícito que o total
+          // é o somatório do próprio documento.
+          const answer =
+            `📌 Resposta\n\n` +
+            `Somando a coluna **Quant.** do documento **${d.title}**, o total é **${sum.total}** funcionário(s).\n\n` +
+            `Observação: este número é o total *conforme esse documento* (soma das quantidades por cargo).\n\n` +
+            `Fontes consultadas:\n- ${d.title}`;
+
+          return jsonResponse(200, {
+            answer,
+            sources: [{ documentId: d.id, documentName: d.title }],
+          });
+        }
+      }
+    }
+
     // Atalho: perguntas do tipo "Qual o cargo de <NOME>?" podem ser respondidas
     // com busca direta por trecho (sem depender de FTS/recortes do início do arquivo).
     const maybePerson = extractPersonNameFromCargoQuestion(query);
@@ -352,19 +493,27 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fallback: busca por ILIKE se FTS não retornar resultados
+    // Fallback: busca por ILIKE no conteúdo e no título se FTS não retornar resultados
     if (docs.length === 0) {
       const keywords = query
         .split(/\s+/)
         .filter((w: string) => w.length > 3)
-        .slice(0, 3);
+        .slice(0, 5)
+        // Remove sufixos comuns em português para melhorar matching
+        .map((k: string) => k.replace(/(ões|ões|ários|ários|ores|ores|ias|ias|es|s)$/gi, ''));
 
       if (keywords.length > 0) {
+        // Busca no conteúdo extraído
+        const contentFilters = keywords.map((k: string) => `extracted_text.ilike.%${k}%`);
+        // Busca também no título (importante para documentos com nomes descritivos)
+        const titleFilters = keywords.map((k: string) => `title.ilike.%${k}%`);
+        const allFilters = [...contentFilters, ...titleFilters].join(",");
+
         const { data: ilikeData } = await userClient
           .from("documents")
           .select("id, title, extracted_text, thematic_area, doc_kind, reference_year")
           .eq("status", "vigente")
-          .or(keywords.map((k: string) => `extracted_text.ilike.%${k}%`).join(","))
+          .or(allFilters)
           .limit(5);
 
         if (ilikeData) {
