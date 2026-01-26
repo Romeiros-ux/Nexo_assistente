@@ -1,26 +1,24 @@
-# Welcome to your Lovable project
+# Nexo Assistente - Sistema de Gestão Documental Educacional
 
-## Project info
+Sistema de gestão documental com IA para instituições educacionais, permitindo upload, classificação automática e consulta inteligente de documentos.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Tecnologias
 
-## How can I edit this code?
+- **Frontend**: React 18 + TypeScript + Vite + Shadcn/ui
+- **Backend**: Supabase (PostgreSQL + Edge Functions)
+- **IA**: Google Gemini 1.5 Flash
+- **Deployment**: Render (Frontend) + Supabase (Backend)
 
-There are several ways of editing your application.
+## 📋 Pré-requisitos
 
-**Use Lovable**
+- Node.js 18+ e npm
+- Conta Supabase (projeto: tbrzrsvokzigmiprzhbb)
+- Chave da API do Google Gemini
+- Conta no Render (para deploy)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## ⚙️ Configuração
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### 1. Clonar o Repositório
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
@@ -49,25 +47,131 @@ npm run dev
 - Select the "Codespaces" tab.
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+git clone https://github.com/seu-usuario/Nexo_assistente.git
+cd Nexo_assistente
+```
 
-## What technologies are used for this project?
+### 2. Instalar Dependências
 
-This project is built with:
+```sh
+npm install
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 3. Configurar Variáveis de Ambiente
 
-## How can I deploy this project?
+Crie um arquivo `.env` na raiz do projeto:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```env
+VITE_SUPABASE_URL=https://tbrzrsvokzigmiprzhbb.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_anon_aqui
+VITE_SUPABASE_PROJECT_ID=tbrzrsvokzigmiprzhbb
+```
 
-## Can I connect a custom domain to my Lovable project?
+### 4. Configurar Google Gemini API
 
-Yes, you can!
+**IMPORTANTE**: Você precisa configurar a chave do Google Gemini no Supabase para que o sistema funcione.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Consulte o guia completo: [GOOGLE_GEMINI_SETUP.md](./GOOGLE_GEMINI_SETUP.md)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Resumo:
+1. Obtenha uma chave em: https://makersuite.google.com/app/apikey
+2. Configure no Supabase: `Settings > Edge Functions > Secrets`
+3. Nome: `GOOGLE_AI_API_KEY`
+4. Valor: Sua chave do Google
+
+### 5. Rodar Localmente
+
+```sh
+npm run dev
+```
+
+Acesse: http://localhost:8080
+
+## 🏗️ Estrutura do Projeto
+
+```
+Nexo_assistente/
+├── src/
+│   ├── components/      # Componentes React
+│   ├── contexts/        # Context API (Auth)
+│   ├── hooks/          # Custom hooks
+│   ├── integrations/   # Supabase client
+│   ├── lib/            # Utilitários
+│   ├── pages/          # Páginas da aplicação
+│   └── types/          # TypeScript types
+├── supabase/
+│   ├── functions/      # Edge Functions (Deno)
+│   │   ├── chat-query/
+│   │   ├── documents-ingest/
+│   │   ├── documents-ingest-link/
+│   │   └── admin-users/
+│   └── migrations/     # Schema do banco
+├── public/             # Assets estáticos
+└── docs/              # Documentação
+
+```
+
+## 📦 Deploy
+
+### Frontend (Render)
+
+Consulte: [DEPLOY_RENDER.md](./DEPLOY_RENDER.md)
+
+### Backend (Supabase)
+
+As Edge Functions já foram deployadas. Para atualizações:
+
+```sh
+supabase link --project-ref tbrzrsvokzigmiprzhbb
+supabase functions deploy
+```
+
+## 🔐 Sistema de Permissões
+
+O sistema usa controle de acesso baseado em funções (RBAC):
+
+- **ti**: Acesso total (upload, gerenciamento de usuários, configurações)
+- **secretaria**: Upload e edição de documentos
+- **coordenacao**: Visualização e consulta
+- **diretor**: Visualização e consulta
+
+## 🤖 Funcionalidades de IA
+
+### Chat Inteligente
+- Busca semântica em documentos usando tsvector
+- Respostas contextualizadas pelo Google Gemini
+- Histórico de conversas persistente
+
+### Classificação Automática
+- Área temática
+- Tipo de documento (normativo, relatório, plano, etc.)
+- Ano de referência, datas de vigência
+- Tags e palavras-chave automáticas
+
+### Suporte a Múltiplos Formatos
+- PDF, Word (DOCX), Excel (XLSX)
+- PowerPoint (PPTX)
+- Arquivos de texto (TXT, MD, CSV, JSON, XML, HTML)
+- Captura de conteúdo de URLs
+
+## 📚 Documentação Adicional
+
+- [Configuração Google Gemini](./GOOGLE_GEMINI_SETUP.md)
+- [Deploy no Render](./DEPLOY_RENDER.md)
+- [Análise Técnica Completa](./ANALISE_COMPLETA.md)
+
+## 🐛 Troubleshooting
+
+### Erro: "GOOGLE_AI_API_KEY is not configured"
+Configure a chave do Google Gemini seguindo [GOOGLE_GEMINI_SETUP.md](./GOOGLE_GEMINI_SETUP.md)
+
+### Erro de autenticação
+Verifique se as variáveis `VITE_SUPABASE_*` estão corretas no `.env`
+
+### Edge Functions não respondem
+Verifique os logs: https://supabase.com/dashboard/project/tbrzrsvokzigmiprzhbb/logs/edge-functions
+
+## 📄 Licença
+
+Este projeto é privado e proprietário.

@@ -110,8 +110,8 @@ function clampList(items: unknown, max = 20): string[] {
 }
 
 async function classifyWithAI(extractedText: string, meta: { title: string; url: string }) {
-  const key = Deno.env.get("LOVABLE_API_KEY");
-  if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+  const key = Deno.env.get("GOOGLE_AI_API_KEY");
+  if (!key) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
   const system =
     "Você é um classificador institucional. Responda APENAS com base no texto fornecido. " +
@@ -124,63 +124,56 @@ async function classifyWithAI(extractedText: string, meta: { title: string; url:
     "Conteúdo principal capturado (pode estar truncado):\n" +
     extractedText.slice(0, 20000);
 
-  const body: any = {
-    model: "google/gemini-3-flash-preview",
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: prompt },
-    ],
-    tools: [
-      {
-        type: "function",
-        function: {
-          name: "classify_document",
-          description: "Classifica e extrai metadados do documento.",
-          parameters: {
-            type: "object",
-            properties: {
-              thematic_area: { type: ["string", "null"] },
-              doc_kind: {
-                type: "string",
-                enum: [
-                  "normativo",
-                  "relatorio",
-                  "plano",
-                  "avaliacao",
-                  "dados_estatisticos",
-                  "manual_orientacao",
-                  "outro",
-                ],
-              },
-              reference_year: { type: ["integer", "null"] },
-              published_at: { type: ["string", "null"], description: "YYYY-MM-DD" },
-              valid_from: { type: ["string", "null"], description: "YYYY-MM-DD" },
-              valid_to: { type: ["string", "null"], description: "YYYY-MM-DD" },
-              tags_auto: { type: "array", items: { type: "string" } },
-              keywords_auto: { type: "array", items: { type: "string" } },
-            },
-            required: [
-              "thematic_area",
-              "doc_kind",
-              "reference_year",
-              "published_at",
-              "valid_from",
-              "valid_to",
-              "tags_auto",
-              "keywords_auto",
-            ],
-            additionalProperties: false,
-          },
-        },
+  const schema = {
+    type: "object",
+    properties: {
+      thematic_area: { type: ["string", "null"] },
+      doc_kind: {
+        type: "string",
+        enum: [
+          "normativo",
+          "relatorio",
+          "plano",
+          "avaliacao",
+          "dados_estatisticos",
+          "manual_orientacao",
+          "outro",
+        ],
       },
+      reference_year: { type: ["integer", "null"] },
+      published_at: { type: ["string", "null"], description: "YYYY-MM-DD" },
+      valid_from: { type: ["string", "null"], description: "YYYY-MM-DD" },
+      valid_to: { type: ["string", "null"], description: "YYYY-MM-DD" },
+      tags_auto: { type: "array", items: { type: "string" } },
+      keywords_auto: { type: "array", items: { type: "string" } },
+    },
+    required: [
+      "thematic_area",
+      "doc_kind",
+      "reference_year",
+      "published_at",
+      "valid_from",
+      "valid_to",
+      "tags_auto",
+      "keywords_auto",
     ],
-    tool_choice: { type: "function", function: { name: "classify_document" } },
+    additionalProperties: false,
   };
 
-  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const body = {
+    contents: [{
+      parts: [{ text: `${system}\n\n${prompt}\n\nResponda APENAS com JSON válido no formato do schema acima.` }]
+    }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: schema,
+      temperature: 0.3,
+    },
+  };
+
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -188,16 +181,15 @@ async function classifyWithAI(extractedText: string, meta: { title: string; url:
 
   if (!resp.ok) {
     if (resp.status === 429) throw new Error("Rate limits exceeded");
-    if (resp.status === 402) throw new Error("Payment required");
     const t = await resp.text();
-    throw new Error(`AI gateway error (${resp.status}): ${t}`);
+    throw new Error(`Gemini API error (${resp.status}): ${t}`);
   }
 
   const data = await resp.json();
-  const call = data?.choices?.[0]?.message?.tool_calls?.[0];
-  const argsStr = call?.function?.arguments;
-  if (!argsStr || typeof argsStr !== "string") throw new Error("Missing tool output");
-  const parsed = JSON.parse(argsStr);
+  const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!responseText) throw new Error("Missing AI response");
+  
+  const parsed = JSON.parse(responseText);
 
   const result: Classification = {
     thematic_area: typeof parsed.thematic_area === "string" ? parsed.thematic_area : null,

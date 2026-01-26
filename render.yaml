@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: nexo-assistente
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npx serve -s dist -l 8080
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: VITE_SUPABASE_URL
+        value: https://tbrzrsvokzigmiprzhbb.supabase.co
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: VITE_SUPABASE_PROJECT_ID
+        value: tbrzrsvokzigmiprzhbb
+    autoDeploy: true

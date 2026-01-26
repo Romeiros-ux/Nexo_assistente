@@ -295,10 +295,10 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+    const geminiKey = Deno.env.get("GOOGLE_AI_API_KEY");
 
-    if (!lovableKey) {
-      return jsonResponse(500, { error: "LOVABLE_API_KEY not configured" });
+    if (!geminiKey) {
+      return jsonResponse(500, { error: "GOOGLE_AI_API_KEY not configured" });
     }
 
     const authHeader = req.headers.get("Authorization") || "";
@@ -438,19 +438,19 @@ Deno.serve(async (req) => {
         const systemPrompt = SYSTEM_PROMPT.replace("{role}", userRole).replace("{unit}", userUnit);
         const userPrompt = `DOCUMENTOS DISPONÍVEIS:\n${snippetContext}\n\nPERGUNTA DO USUÁRIO:\n${query}\n\nResponda com base APENAS nos documentos acima.`;
 
-        const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const aiResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${lovableKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            max_tokens: 2000,
+            contents: [{
+              parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
+            }],
+            generationConfig: {
+              maxOutputTokens: 2000,
+              temperature: 0.7,
+            },
           }),
         });
 
@@ -461,7 +461,7 @@ Deno.serve(async (req) => {
         }
 
         const aiData = await aiResp.json();
-        const answer = aiData?.choices?.[0]?.message?.content || "Não foi possível gerar uma resposta.";
+        const answer = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "Não foi possível gerar uma resposta.";
         return jsonResponse(200, {
           answer,
           sources: sources.map((s) => ({ documentId: s.id, documentName: s.title })),
@@ -564,20 +564,20 @@ ${query}
 
 Responda com base APENAS nos documentos acima.`;
 
-    // Chama Lovable AI
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Chama Google Gemini para processar consulta
+    const aiResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 2000,
+        contents: [{
+          parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
+        }],
+        generationConfig: {
+          maxOutputTokens: 2000,
+          temperature: 0.7,
+        },
       }),
     });
 
@@ -585,16 +585,13 @@ Responda com base APENAS nos documentos acima.`;
       if (aiResp.status === 429) {
         return jsonResponse(429, { error: "Rate limits exceeded. Tente novamente em alguns segundos." });
       }
-      if (aiResp.status === 402) {
-        return jsonResponse(402, { error: "Créditos de IA esgotados. Contate o administrador." });
-      }
       const errText = await aiResp.text();
       console.error("AI error:", aiResp.status, errText);
       return jsonResponse(500, { error: "Erro ao processar com IA" });
     }
 
     const aiData = await aiResp.json();
-    const answer = aiData?.choices?.[0]?.message?.content || "Não foi possível gerar uma resposta.";
+    const answer = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "Não foi possível gerar uma resposta.";
 
     return jsonResponse(200, {
       answer,

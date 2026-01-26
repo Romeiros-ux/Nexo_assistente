@@ -73,40 +73,56 @@ async function classifyWithAI(extractedText: string, meta: { title: string; type
     "Texto extraído (pode estar truncado):\n" +
     extractedText.slice(0, 20000);
 
-  const schema = {
-    type: "object",
-    properties: {
-      thematic_area: { type: ["string", "null"] },
-      doc_kind: {
-        type: "string",
-        enum: [
-          "normativo",
-          "relatorio",
-          "plano",
-          "avaliacao",
-          "dados_estatisticos",
-          "manual_orientacao",
-          "outro",
-        ],
-      },
-      reference_year: { type: ["integer", "null"] },
-      published_at: { type: ["string", "null"], description: "YYYY-MM-DD" },
-      valid_from: { type: ["string", "null"], description: "YYYY-MM-DD" },
-      valid_to: { type: ["string", "null"], description: "YYYY-MM-DD" },
-      tags_auto: { type: "array", items: { type: "string" } },
-      keywords_auto: { type: "array", items: { type: "string" } },
-    },
-    required: [
-      "thematic_area",
-      "doc_kind",
-      "reference_year",
-      "published_at",
-      "valid_from",
-      "valid_to",
-      "tags_auto",
-      "keywords_auto",
+  const body: any = {
+    model: "google/gemini-3-flash-preview",
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: prompt },
     ],
-    additionalProperties: false,
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "classify_document",
+          description: "Classifica e extrai metadados do documento.",
+          parameters: {
+            type: "object",
+            properties: {
+              thematic_area: { type: ["string", "null"] },
+              doc_kind: {
+                type: "string",
+                enum: [
+                  "normativo",
+                  "relatorio",
+                  "plano",
+                  "avaliacao",
+                  "dados_estatisticos",
+                  "manual_orientacao",
+                  "outro",
+                ],
+              },
+              reference_year: { type: ["integer", "null"] },
+              published_at: { type: ["string", "null"], description: "YYYY-MM-DD" },
+              valid_from: { type: ["string", "null"], description: "YYYY-MM-DD" },
+              valid_to: { type: ["string", "null"], description: "YYYY-MM-DD" },
+              tags_auto: { type: "array", items: { type: "string" } },
+              keywords_auto: { type: "array", items: { type: "string" } },
+            },
+            required: [
+              "thematic_area",
+              "doc_kind",
+              "reference_year",
+              "published_at",
+              "valid_from",
+              "valid_to",
+              "tags_auto",
+              "keywords_auto",
+            ],
+            additionalProperties: false,
+          },
+        },
+      },
+    };
   };
 
   const body = {
@@ -369,4 +385,3 @@ Deno.serve(async (req) => {
     return jsonResponse(status, { error: msg });
   }
 });
-
