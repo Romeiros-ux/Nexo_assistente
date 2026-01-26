@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Institutional Blue Palette */
+    --primary: 210 60% 25%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Educational Teal Accent */
+    --accent: 175 50% 40%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Backgrounds */
+    --background: 210 20% 98%;
+    --foreground: 210 25% 15%;
+    
+    /* Cards & Surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 210 25% 15%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 25% 15%;
+    
+    /* Secondary - Soft Gray Blue */
+    --secondary: 210 15% 94%;
+    --secondary-foreground: 210 25% 25%;
+    
+    /* Muted */
+    --muted: 210 15% 92%;
+    --muted-foreground: 210 15% 45%;
+    
+    /* Destructive - Institutional Red */
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Success - Green */
+    --success: 145 60% 40%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning - Amber */
+    --warning: 40 90% 50%;
+    --warning-foreground: 40 90% 15%;
+    
+    /* Borders & Inputs */
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 210 60% 35%;
+    
+    --radius: 0.5rem;
+    
+    /* Sidebar */
+    --sidebar-background: 210 60% 20%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 175 50% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 30%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 210 40% 30%;
+    --sidebar-ring: 175 50% 50%;
+    
+    /* Custom Gradients */
+    --gradient-header: linear-gradient(135deg, hsl(210 60% 25%) 0%, hsl(210 50% 35%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(175 50% 40%) 0%, hsl(175 60% 50%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 20% 98%) 100%);
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(210 20% 20% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(210 20% 20% / 0.08), 0 2px 4px -2px hsl(210 20% 20% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(210 20% 20% / 0.1), 0 4px 6px -4px hsl(210 20% 20% / 0.05);
+    --shadow-card: 0 2px 8px -2px hsl(210 20% 20% / 0.08);
+  }
+
+  .dark {
+    --primary: 210 50% 60%;
+    --primary-foreground: 210 60% 10%;
+    
+    --accent: 175 50% 55%;
+    --accent-foreground: 175 60% 10%;
+    
+    --background: 210 30% 8%;
+    --foreground: 210 15% 92%;
+    
+    --card: 210 25% 12%;
+    --card-foreground: 210 15% 92%;
+    
+    --popover: 210 25% 12%;
+    --popover-foreground: 210 15% 92%;
+    
+    --secondary: 210 20% 18%;
+    --secondary-foreground: 210 15% 85%;
+    
+    --muted: 210 20% 18%;
+    --muted-foreground: 210 15% 55%;
+    
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 145 50% 50%;
+    --success-foreground: 145 60% 10%;
+    
+    --warning: 40 80% 55%;
+    --warning-foreground: 40 90% 10%;
+    
+    --border: 210 20% 22%;
+    --input: 210 20% 22%;
+    --ring: 210 50% 50%;
+    
+    --sidebar-background: 210 30% 6%;
+    --sidebar-foreground: 210 15% 92%;
+    --sidebar-primary: 175 50% 55%;
+    --sidebar-primary-foreground: 175 60% 10%;
+    --sidebar-accent: 210 25% 15%;
+    --sidebar-accent-foreground: 210 15% 92%;
+    --sidebar-border: 210 20% 18%;
+    --sidebar-ring: 175 50% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+}
+
+@layer components {
+  .institutional-header {
+    background: var(--gradient-header);
+    @apply text-primary-foreground;
+  }
+  
+  .card-elevated {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+    @apply rounded-lg border border-border;
+  }
+  
+  .btn-accent {
+    background: var(--gradient-accent);
+    @apply text-accent-foreground font-medium rounded-md px-4 py-2 transition-all hover:opacity-90;
+  }
+  
+  .response-section {
+    @apply p-4 rounded-lg border border-border bg-card;
+  }
+  
+  .source-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground;
+  }
+  
+  .status-active {
+    @apply bg-success/10 text-success border border-success/20;
+  }
+  
+  .status-inactive {
+    @apply bg-muted text-muted-foreground border border-border;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

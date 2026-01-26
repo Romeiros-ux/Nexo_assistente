@@ -1,0 +1,7 @@
+project_id = "bkssobleshobcwnnipak"
+
+[functions.admin-users]
+verify_jwt = false
+
+[functions.chat-query]
+verify_jwt = false
