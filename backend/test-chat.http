@@ -1,0 +1,165 @@
+### ==========================================
+### TESTES - FASE 3: Chat Conversacional
+### ==========================================
+### Backend: http://localhost:3001/api/v1
+### 
+### IMPORTANTE: 
+### 1. Substituir {{token}} por JWT válido do Supabase
+### 2. Substituir {{user_id}} por UUID do usuário autenticado
+### 3. Garantir que há documentos indexados no banco
+### ==========================================
+
+@baseUrl = http://localhost:3001/api/v1
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdHNyaXJxdGdzanBobG11d3VpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NTkwNDMsImV4cCI6MjA4MzUzNTA0M30.rgJWcTQo__blYgrE6492ZO8dS2oM620BevVUrCXc_HI
+
+### ==========================================
+### 1. HEALTH CHECK
+### ==========================================
+GET http://localhost:3001/health
+
+### ==========================================
+### 2. POST /api/chat/ask - Fazer pergunta
+### ==========================================
+### Descrição: Enviar pergunta e receber resposta com citações
+### Perfis permitidos: DIRETOR, COMISSAO, SECRETARIA, TI
+### ==========================================
+
+POST {{baseUrl}}/chat/ask
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "query": "Qual o horário de funcionamento das escolas?",
+  "filters": {
+    "max_results": 5
+  }
+}
+
+### ==========================================
+### 3. POST /api/chat/ask - Pergunta sem resultados
+### ==========================================
+### Teste: Verificar resposta quando não há documentos relevantes
+### ==========================================
+
+POST {{baseUrl}}/chat/ask
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "query": "Qual é a temperatura média de Marte?"
+}
+
+### ==========================================
+### 4. POST /api/chat/ask - Pergunta sobre regimento
+### ==========================================
+
+POST {{baseUrl}}/chat/ask
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "query": "Quais são as normas de matrícula escolar?",
+  "filters": {
+    "document_type": "REGIMENTO",
+    "max_results": 8
+  }
+}
+
+### ==========================================
+### 5. GET /api/chat/history - Histórico pessoal
+### ==========================================
+### Descrição: Buscar últimas 100 interações do usuário
+### ==========================================
+
+GET {{baseUrl}}/chat/history
+Authorization: Bearer {{token}}
+
+### ==========================================
+### 6. GET /api/chat/history - Com limite
+### ==========================================
+
+GET {{baseUrl}}/chat/history?limit=5
+Authorization: Bearer {{token}}
+
+### ==========================================
+### 7. GET /api/chat/stats - Estatísticas (TI only)
+### ==========================================
+### Descrição: Estatísticas agregadas de uso
+### Acesso: Apenas perfil TI
+### ==========================================
+
+GET {{baseUrl}}/chat/stats
+Authorization: Bearer {{token}}
+
+### ==========================================
+### 8. GET /api/chat/popular - Queries populares (TI only)
+### ==========================================
+### Descrição: Top 50 perguntas mais frequentes
+### Acesso: Apenas perfil TI
+### ==========================================
+
+GET {{baseUrl}}/chat/popular
+Authorization: Bearer {{token}}
+
+### ==========================================
+### 9. GET /api/chat/popular - Com limite (TI only)
+### ==========================================
+
+GET {{baseUrl}}/chat/popular?limit=10
+Authorization: Bearer {{token}}
+
+### ==========================================
+### 10. GET /api/chat/documents/most-cited (TI only)
+### ==========================================
+### Descrição: Top 50 documentos mais citados
+### Acesso: Apenas perfil TI
+### ==========================================
+
+GET {{baseUrl}}/chat/documents/most-cited
+Authorization: Bearer {{token}}
+
+### ==========================================
+### 11. GET /api/chat/documents/most-cited - Com limite (TI only)
+### ==========================================
+
+GET {{baseUrl}}/chat/documents/most-cited?limit=10
+Authorization: Bearer {{token}}
+
+### ==========================================
+### TESTES DE VALIDAÇÃO
+### ==========================================
+
+### Teste: Query vazia (deve retornar erro 400)
+POST {{baseUrl}}/chat/ask
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "query": ""
+}
+
+### Teste: Query muito curta (deve retornar erro 400)
+POST {{baseUrl}}/chat/ask
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "query": "aa"
+}
+
+### Teste: Query muito longa (deve retornar erro 400)
+POST {{baseUrl}}/chat/ask
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "query": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+}
+
+### Teste: Sem autenticação (deve retornar erro 401)
+POST {{baseUrl}}/chat/ask
+Content-Type: application/json
+
+{
+  "query": "Teste sem autenticação"
+}

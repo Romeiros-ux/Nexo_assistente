@@ -1,0 +1,9 @@
+# Este arquivo mantém a pasta repositories/ no controle de versão
+# A pasta está preparada para receber os repositórios da aplicação
+# 
+# Repositories são responsáveis por toda interação com o banco de dados
+# Exemplos futuros:
+# - user.repository.ts
+# - conversation.repository.ts
+# - message.repository.ts
+# - knowledge-base.repository.ts

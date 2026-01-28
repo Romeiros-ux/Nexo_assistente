@@ -1,0 +1,88 @@
+{
+  "documents": [
+    {
+      "id": 1,
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2025/06/plano-municipal-de-educacao-saquarema.pdf",
+      "title": "Plano Municipal de Educação - Saquarema",
+      "type": "PLANO_EDUCACIONAL",
+      "priority": "CRITICAL",
+      "category": "educacao"
+    },
+    {
+      "id": 2,
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2018/01/LO-1081-2010.pdf",
+      "title": "Lei Orgânica Municipal 1081/2010",
+      "type": "LEI_ORGANICA",
+      "priority": "HIGH",
+      "category": "legislacao"
+    },
+    {
+      "id": 3,
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2022/04/LO-2232-2022.pdf",
+      "title": "Lei Ordinária 2232/2022",
+      "type": "LEI_ORDINARIA",
+      "priority": "HIGH",
+      "category": "legislacao"
+    },
+    {
+      "id": 4,
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2024/12/LO-2667-2024.pdf",
+      "title": "Lei Ordinária 2667/2024",
+      "type": "LEI_ORDINARIA",
+      "priority": "HIGH",
+      "category": "legislacao"
+    },
+    {
+      "id": 5,
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2018/02/LO-97-1993.pdf",
+      "title": "Lei Ordinária 97/1993",
+      "type": "LEI_ORDINARIA",
+      "priority": "MEDIUM",
+      "category": "legislacao"
+    },
+    {
+      "id": 6,
+      "url": "https://www.saquarema.rj.gov.br/wp-content/uploads/2022/03/lista-de-ceps-saquarema.pdf",
+      "title": "Lista de CEPs de Saquarema",
+      "type": "REFERENCIA",
+      "priority": "LOW",
+      "category": "dados"
+    }
+  ],
+  "webPages": [
+    {
+      "id": "web-1",
+      "url": "https://qedu.org.br/municipio/3305505-saquarema",
+      "title": "Estatísticas Educacionais Saquarema - QEdu",
+      "type": "ESTATISTICA_EDUCACIONAL",
+      "priority": "CRITICAL",
+      "category": "educacao",
+      "extractMethod": "html"
+    },
+    {
+      "id": "web-2",
+      "url": "https://cidades.ibge.gov.br/brasil/rj/saquarema/panorama",
+      "title": "Panorama Demográfico Saquarema - IBGE",
+      "type": "DADOS_DEMOGRAFICOS",
+      "priority": "HIGH",
+      "category": "dados",
+      "extractMethod": "html"
+    },
+    {
+      "id": "web-3",
+      "url": "https://transparencia.saquarema.rj.gov.br/",
+      "title": "Portal da Transparência - Índice Principal",
+      "type": "PORTAL_TRANSPARENCIA",
+      "priority": "MEDIUM",
+      "category": "dados",
+      "extractMethod": "html"
+    }
+  ],
+  "metadata": {
+    "lastUpdated": "2026-01-12",
+    "totalDocuments": 6,
+    "totalWebPages": 3,
+    "estimatedProcessingTime": "8-10 hours",
+    "estimatedCost": "$0.33"
+  }
+}

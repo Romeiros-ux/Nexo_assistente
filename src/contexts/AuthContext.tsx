@@ -1,121 +1,175 @@
- import { createContext, useContext, useEffect, useState, ReactNode } from "react";
- import { User } from "@supabase/supabase-js";
- import { supabase } from "@/integrations/supabase/client";
- import { UserContext, AppRole } from "@/types/auth";
- 
- interface AuthContextType {
-   user: User | null;
-   userContext: UserContext | null;
-   loading: boolean;
-   signIn: (email: string, password: string) => Promise<void>;
-   signUp: (email: string, password: string, fullName: string) => Promise<void>;
-   signOut: () => Promise<void>;
- }
- 
- const AuthContext = createContext<AuthContextType | undefined>(undefined);
- 
- export function AuthProvider({ children }: { children: ReactNode }) {
-   const [user, setUser] = useState<User | null>(null);
-   const [userContext, setUserContext] = useState<UserContext | null>(null);
-   const [loading, setLoading] = useState(true);
- 
-   const fetchUserContext = async (userId: string): Promise<UserContext | null> => {
-     try {
-       // Fetch profile
-       const { data: profile } = await supabase
-         .from("profiles")
-         .select("*, units(name)")
-         .eq("user_id", userId)
-         .single();
- 
-       if (!profile) return null;
- 
-       // Fetch primary role
-       const { data: roles } = await supabase
-         .from("user_roles")
-         .select("role")
-         .eq("user_id", userId)
-         .order("role", { ascending: false })
-         .limit(1);
- 
-       const role = roles?.[0]?.role as AppRole | null;
- 
-       // Compute permissions
-       const canUploadDocuments = role === "ti";
-       const canViewAllUnits = role === "ti" || role === "secretaria" || role === "coordenacao";
-       const canAccessAuditLogs = role === "ti";
- 
-       return {
-         userId,
-         email: profile.email,
-         fullName: profile.full_name,
-         role,
-         unitId: profile.unit_id,
-         unitName: (profile.units as any)?.name || null,
-         isActive: profile.is_active,
-         canUploadDocuments,
-         canViewAllUnits,
-         canAccessAuditLogs,
-       };
-     } catch (error) {
-       console.error("Error fetching user context:", error);
-       return null;
-     }
-   };
- 
-   useEffect(() => {
-     // Initial session
-     supabase.auth.getSession().then(({ data: { session } }) => {
-       setUser(session?.user ?? null);
-       if (session?.user) {
-         fetchUserContext(session.user.id).then(setUserContext);
-       }
-       setLoading(false);
-     });
- 
-     // Auth state listener
-     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-       setUser(session?.user ?? null);
-       if (session?.user) {
-         fetchUserContext(session.user.id).then(setUserContext);
-       } else {
-         setUserContext(null);
-       }
-     });
- 
-     return () => subscription.unsubscribe();
-   }, []);
- 
-   const signIn = async (email: string, password: string) => {
-     const { error } = await supabase.auth.signInWithPassword({ email, password });
-     if (error) throw error;
-   };
- 
-   const signUp = async (email: string, password: string, fullName: string) => {
-     const { error } = await supabase.auth.signUp({
-       email,
-       password,
-       options: {
-         data: { full_name: fullName },
-       },
-     });
-     if (error) throw error;
-   };
- 
-   const signOut = async () => {
-     const { error } = await supabase.auth.signOut();
-     if (error) throw error;
-   };
- 
-   return (
-     <AuthContext.Provider value={{ user, userContext, loading, signIn, signUp, signOut }}>
-       {children}
-     </AuthContext.Provider>
-   );
- }
- 
- export const useAuth = () => {
-   const context = useContext(AuthContext);
-   if (!context) throw new Error("useAuth must be used within AuthProvider");
-   return context;
- };
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import authService from '@/services/auth.service';
+import type { User } from '@/types/api.types';
+import { getErrorMessage } from '@/lib/apiClient';
+
+interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  hasRole: (role: string) => boolean;
+  hasAnyRole: (roles: string[]) => boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ==========================================
+  // INICIALIZAÇÃO - Verifica se já está logado
+  // ==========================================
+  useEffect(() => {
+    const initAuth = async () => {
+      console.log('🔵 AuthContext - Inicializando...');
+      try {
+        // Verifica se tem token salvo
+        const hasToken = authService.isAuthenticated();
+        console.log('🔵 AuthContext - Token existe?', hasToken);
+        
+        if (hasToken) {
+          // Tenta buscar dados atualizados do usuário
+          console.log('🔵 AuthContext - Buscando usuário atual...');
+          try {
+            const currentUser = await authService.getCurrentUser();
+            console.log('🔵 AuthContext - Usuário recebido:', currentUser);
+            
+            if (currentUser) {
+              setUser(currentUser);
+            } else {
+              // Se getCurrentUser retornar undefined, tenta localStorage
+              console.log('⚠️ AuthContext - getCurrentUser retornou undefined, tentando localStorage');
+              const savedUser = authService.getUser();
+              if (savedUser) {
+                console.log('✅ AuthContext - Usando usuário do localStorage:', savedUser);
+                setUser(savedUser);
+              } else {
+                console.log('❌ AuthContext - Nenhum usuário encontrado, limpando auth');
+                authService.clearAuth();
+                setUser(null);
+              }
+            }
+          } catch (apiError) {
+            // Se a API falhar (token inválido, rede, etc), usa localStorage
+            console.warn('⚠️ AuthContext - Erro ao buscar usuário da API, usando localStorage:', apiError);
+            const savedUser = authService.getUser();
+            if (savedUser) {
+              console.log('✅ AuthContext - Usando usuário do localStorage (fallback):', savedUser);
+              setUser(savedUser);
+            } else {
+              console.log('❌ AuthContext - Nenhum usuário no localStorage, limpando auth');
+              authService.clearAuth();
+              setUser(null);
+            }
+          }
+        } else {
+          // Sem token, busca usuário do localStorage
+          const savedUser = authService.getUser();
+          console.log('🔵 AuthContext - Usuário salvo no localStorage:', savedUser);
+          if (savedUser) {
+            setUser(savedUser);
+          }
+        }
+      } catch (error) {
+        console.error('❌ AuthContext - Erro crítico ao inicializar autenticação:', error);
+        // Se falhar, limpa autenticação
+        authService.clearAuth();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+        console.log('🔵 AuthContext - Inicialização concluída');
+      }
+    };
+
+    initAuth();
+  }, []);
+
+  // ==========================================
+  // LOGIN
+  // ==========================================
+  const login = async (email: string, password: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+
+      const response = await authService.login({ email, password });
+
+      setUser(response.user);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      console.error('Erro no login:', message);
+      throw new Error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+  const logout = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      await authService.logout();
+      setUser(null);
+    } catch (error) {
+      console.error('Erro no logout:', error);
+      // Mesmo com erro, limpa estado local
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ==========================================
+  // HELPER FUNCTIONS
+  // ==========================================
+
+  /**
+   * Verifica se usuário tem uma role específica
+   */
+  const hasRole = (role: string): boolean => {
+    return user?.role === role;
+  };
+
+  /**
+   * Verifica se usuário tem uma das roles
+   */
+  const hasAnyRole = (roles: string[]): boolean => {
+    return user ? roles.includes(user.role) : false;
+  };
+
+  // ==========================================
+  // CONTEXT VALUE
+  // ==========================================
+
+  const value: AuthContextType = {
+    user,
+    login,
+    logout,
+    isAuthenticated: !!user,
+    isLoading,
+    hasRole,
+    hasAnyRole,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// ==========================================
+// HOOK
+// ==========================================
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

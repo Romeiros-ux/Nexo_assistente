@@ -1,18 +1,345 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 🚀 RENDER BLUEPRINT - Assistente Institucional Inteligente
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Este arquivo configura o deploy automático no Render.
+# 
+# IMPORTANTE: 
+# - Este arquivo deve ficar na RAIZ do repositório
+# - Render detecta automaticamente e cria os serviços
+# - Variáveis sensíveis devem ser configuradas no Dashboard do Render
+#
+# Documentação: https://render.com/docs/blueprint-spec
+#
+# Data de Criação: 9 de Janeiro de 2026
+# Versão: 1.0
+# ═══════════════════════════════════════════════════════════════════════════
+
 services:
+  # ┌─────────────────────────────────────────────────────────────────────────┐
+  # │ BACKEND API - Node.js + Express + TypeScript                            │
+  # └─────────────────────────────────────────────────────────────────────────┘
   - type: web
-    name: nexo-assistente
-    runtime: node
+    name: edu-ia-assistente-backend
+    env: node
     region: oregon
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npx serve -s dist -l 8080
+    
+    # Diretório raiz do backend
+    rootDir: backend
+    
+    # Comandos de build e start
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    
+    # Health check (endpoint sem prefixo /api/v1)
+    healthCheckPath: /health
+    
+    # ==========================================
+    # VARIÁVEIS DE AMBIENTE
+    # ==========================================
+    
     envVars:
-      - key: NODE_VERSION
-        value: 18.17.0
-      - key: VITE_SUPABASE_URL
-        value: https://tbrzrsvokzigmiprzhbb.supabase.co
-      - key: VITE_SUPABASE_PUBLISHABLE_KEY
-        sync: false
-      - key: VITE_SUPABASE_PROJECT_ID
-        value: tbrzrsvokzigmiprzhbb
-    autoDeploy: true
+      # ──────────────────────────────────────
+      # Servidor
+      # ──────────────────────────────────────
+      - key: NODE_ENV
+        value: production
+      
+      - key: API_PREFIX
+        value: /api/v1
+      
+      # ──────────────────────────────────────
+      # Supabase (CONFIGURE NO DASHBOARD!)
+      # ──────────────────────────────────────
+      # IMPORTANTE: NÃO coloque valores reais aqui!
+      # Configure estas variáveis no Dashboard do Render:
+      # Settings > Environment > Add Environment Variable
+      
+      - key: SUPABASE_URL
+        sync: false  # Será configurado manualmente no dashboard
+      
+      - key: SUPABASE_ANON_KEY
+        sync: false  # Será configurado manualmente no dashboard
+      
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false  # Será configurado manualmente no dashboard
+      
+      - key: DATABASE_PASSWORD
+        sync: false  # Será configurado manualmente no dashboard
+      
+      # ──────────────────────────────────────
+      # CORS - Frontend em Produção
+      # ──────────────────────────────────────
+      # ATENÇÃO: Atualize com a URL REAL do seu frontend após deploy
+      # Suporta múltiplas origens separadas por vírgula
+      # Exemplos de plataformas:
+      #   - Vercel: https://seu-app.vercel.app
+      #   - Netlify: https://seu-app.netlify.app
+      #   - Render: https://seu-app.onrender.com
+      #   - GitHub Pages: https://seu-usuario.github.io
+      
+      - key: ALLOWED_ORIGINS
+        value: https://edu-ia-assistente.vercel.app,https://edu-ia-assistente.netlify.app
+        # ⚠️ IMPORTANTE: Após deploy do frontend, atualize este valor no Dashboard do Render
+        # com a URL real. Pode incluir múltiplas URLs separadas por vírgula.
+      
+      # ──────────────────────────────────────
+      # JWT (Autenticação)
+      # ──────────────────────────────────────
+      
+      - key: JWT_SECRET
+        sync: false  # CRÍTICO: Configure no dashboard com valor seguro!
+        # Use um gerador: https://generate-secret.vercel.app/64
+      
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      
+      # ──────────────────────────────────────
+      # OpenAI API
+      # ──────────────────────────────────────
+      
+      - key: OPENAI_API_KEY
+        sync: false  # CRÍTICO: Configure no dashboard
+      
+      - key: OPENAI_MODEL
+        value: text-embedding-3-large
+      
+      - key: OPENAI_DIMENSIONS
+        value: 1536
+      
+      # ──────────────────────────────────────
+      # Logs
+      # ──────────────────────────────────────
+      
+      - key: LOG_LEVEL
+        value: info
+      
+      # ──────────────────────────────────────
+      # Redis (Background Jobs)
+      # ──────────────────────────────────────
+      # Conecta ao Redis definido abaixo (edu-ia-redis)
+      
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: edu-ia-redis
+          property: host
+      
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: edu-ia-redis
+          property: port
+      
+      - key: REDIS_PASSWORD
+        fromService:
+          type: redis
+          name: edu-ia-redis
+          property: password
+      
+      - key: REDIS_DB
+        value: 0
+
+  # ┌─────────────────────────────────────────────────────────────────────────┐
+  # │ REDIS (Key-Value Store) - Fila de Background Jobs                       │
+  # └─────────────────────────────────────────────────────────────────────────┘
+  - type: redis
+    name: edu-ia-redis
+    region: oregon
+    plan: free  # Free: 25MB | Starter: $7/mês (256MB)
+    maxmemoryPolicy: allkeys-lru  # Remove keys menos usadas quando memória cheia
+    ipAllowList: []  # Vazio = apenas conexões internas (seguro)
+
+  # ┌─────────────────────────────────────────────────────────────────────────┐
+  # │ FRONTEND - React + Vite                                                  │
+  # └─────────────────────────────────────────────────────────────────────────┘
+  - type: web
+    name: edu-ia-assistente-frontend
+    env: static
+    
+    # Comandos de build
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    
+    # Rotas SPA (Single Page App)
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    
+    # Variáveis de ambiente do frontend
+    envVars:
+      # URL do backend (já configurada com a URL real!)
+      - key: VITE_API_URL
+        value: https://edu-ia-assistente-backend.onrender.com/api/v1
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 📝 INSTRUÇÕES PÓS-DEPLOY
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Após o deploy, configure as variáveis de ambiente sensíveis:
+#
+# 1. Acesse o Dashboard do Render: https://dashboard.render.com
+# 2. Clique no seu serviço "edu-ia-assistente-backend"
+# 3. Vá em "Environment" no menu lateral
+# 4. Clique em "Add Environment Variable"
+# 5. Adicione cada variável sensível:
+#
+#    SUPABASE_URL=https://seu-projeto.supabase.co
+#    SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+#    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+#    DATABASE_PASSWORD=sua-senha-super-segura
+#    JWT_SECRET=seu-secret-de-64-caracteres-aqui
+#
+# 6. Clique em "Save Changes"
+# 7. Render fará redeploy automático com as novas variáveis
+#
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 🔍 VALIDAÇÃO PÓS-DEPLOY
+#
+# Depois que o deploy completar, teste:
+#
+# 1. Health Check:
+#    curl https://seu-app.onrender.com/health
+#    
+#    Resposta esperada:
+#    {
+#      "success": true,
+#      "status": "healthy",
+#      "timestamp": "2026-01-09T..."
+#    }
+#
+# 2. Health Check Detalhado:
+#    curl https://seu-app.onrender.com/health/detailed
+#    
+#    Resposta esperada:
+#    {
+#      "success": true,
+#      "status": "healthy",
+#      "timestamp": "...",
+#      "uptime": 123.45,
+#      "environment": "production",
+#      "dependencies": {
+#        "supabase": "connected",
+#        "database": "connected"
+#      }
+#    }
+#
+# 3. API Root:
+#    curl https://seu-app.onrender.com/api/v1
+#    
+#    Resposta esperada:
+#    {
+#      "success": true,
+#      "message": "API do Assistente Institucional",
+#      "version": "1.0.0",
+#      "endpoints": { ... }
+#    }
+#
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 🐛 TROUBLESHOOTING
+#
+# Se o deploy falhar, verifique:
+#
+# 1. Logs do Build:
+#    - Dashboard > Logs > Build Logs
+#    - Procure por erros de compilação TypeScript
+#    - Verifique se todas as dependências foram instaladas
+#
+# 2. Logs do Runtime:
+#    - Dashboard > Logs > Deploy Logs
+#    - Procure por erros de conexão com Supabase
+#    - Verifique se variáveis de ambiente estão corretas
+#
+# 3. Health Check Falhando:
+#    - Verifique se o servidor está escutando em process.env.PORT
+#    - Confirme que a rota /health existe e responde
+#    - Teste localmente: npm run build && npm start
+#
+# 4. CORS Errors:
+#    - Adicione a URL do frontend em ALLOWED_ORIGINS
+#    - No Dashboard: Environment > Edit ALLOWED_ORIGINS
+#    - Formato: https://frontend1.com,https://frontend2.com
+#
+# 5. Database Connection Failed:
+#    - Confirme que SUPABASE_URL está correta
+#    - Verifique se as keys (ANON_KEY, SERVICE_ROLE_KEY) são válidas
+#    - Teste conexão localmente com as mesmas credenciais
+#
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 📊 MONITORAMENTO
+#
+# Render oferece:
+# - Logs em tempo real (últimas 1000 linhas)
+# - Métricas de CPU e Memória
+# - Histórico de deploys
+# - Alertas de downtime (planos pagos)
+#
+# Para monitoramento avançado, considere:
+# - Sentry (erros e exceções)
+# - DataDog (métricas e APM)
+# - LogDNA (agregação de logs)
+#
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 🔄 REDEPLOY MANUAL
+#
+# Se precisar forçar um redeploy:
+# 1. Dashboard > Manual Deploy
+# 2. Ou commit vazio: git commit --allow-empty -m "redeploy" && git push
+#
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 💰 CUSTOS
+#
+# Plano FREE:
+# - Backend: $0/mês (750 horas gratuitas)
+# - Redis: $0/mês (25 MB)
+# - Frontend: $0/mês
+# - Limitação Backend: Sleep após 15 min sem uso
+# - Primeiro request após sleep: ~30 segundos (cold start)
+#
+# Plano STARTER (Recomendado para Produção):
+# - Backend: $7/mês (sempre online)
+# - Redis: $7/mês (256 MB)
+# - Frontend: $0/mês
+# - Sem sleep (sempre online)
+# - Resposta imediata
+# - Background jobs funcionam 24/7
+#
+# Recomendação:
+# - Desenvolvimento/Teste: Use FREE
+# - Produção: Use STARTER (melhor experiência + background jobs confiáveis)
+#
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 🔧 REDIS - BACKGROUND JOBS
+#
+# O Redis foi adicionado para processar indexação de documentos em background.
+#
+# Como funciona:
+# 1. Usuário faz upload de documento → Response imediato
+# 2. Job de indexação é adicionado na fila Redis
+# 3. Worker processa job em background (chunks + embeddings)
+# 4. Documento fica disponível para busca após processamento
+#
+# Sem Redis:
+# - Indexação é síncrona (usuário espera)
+# - Upload de documentos grandes pode causar timeout
+# - Não há retry automático em caso de falha
+#
+# Com Redis:
+# - ✅ Upload instantâneo (response em <1s)
+# - ✅ Processamento em background
+# - ✅ Retry automático (3 tentativas)
+# - ✅ Fila de prioridades
+# - ✅ Monitoramento de jobs
+#
+# Verificar se Redis está funcionando:
+#   curl https://seu-app.onrender.com/api/v1/queue/stats
+#
+# ═══════════════════════════════════════════════════════════════════════════

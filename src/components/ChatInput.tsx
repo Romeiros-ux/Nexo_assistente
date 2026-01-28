@@ -1,97 +1,82 @@
-import { useState } from "react";
-import { Send, Loader2, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { useState } from 'react';
+import { Send, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
-  isLoading: boolean;
   disabled?: boolean;
 }
 
-const suggestedQueries = [
-  "Qual o índice de evasão escolar nos últimos 3 anos?",
-  "Compare o desempenho das escolas municipais no IDEB",
-  "Gere um diagnóstico sobre infraestrutura escolar",
-  "Quais escolas precisam de intervenção prioritária?",
-];
+const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
+  const [message, setMessage] = useState('');
+  const maxLength = 500;
+  const remainingChars = maxLength - message.length;
+  const isNearLimit = remainingChars <= 50;
+  const isOverLimit = remainingChars < 0;
 
-export function ChatInput({ onSend, isLoading, disabled }: ChatInputProps) {
-  const [input, setInput] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim() && !isLoading && !disabled) {
-      onSend(input.trim());
-      setInput("");
+  const handleSend = () => {
+    if (message.trim() && message.length <= maxLength && message.length >= 3) {
+      onSend(message.trim());
+      setMessage('');
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSend();
     }
   };
 
   return (
-    <div className="border-t border-border bg-card p-4">
-      {/* Suggested queries */}
-      <div className="flex flex-wrap gap-2 mb-3">
-        {suggestedQueries.map((query, index) => (
-          <button
-            key={index}
-            onClick={() => setInput(query)}
-            disabled={isLoading || disabled}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+    <div className="chat-input-container p-4 md:p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="card-premium p-2 flex gap-2 items-end">
+          <div className="flex-1 relative">
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Faça uma pergunta ou peça uma análise..."
+              disabled={disabled}
+              className="min-h-[52px] max-h-[200px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 pr-4 py-3 text-sm placeholder:text-muted-foreground/70"
+              rows={1}
+              maxLength={maxLength}
+            />
+            {message.length > 0 && (
+              <div className={`absolute bottom-2 right-2 text-xs ${
+                isOverLimit ? 'text-red-500 font-semibold' : 
+                isNearLimit ? 'text-orange-500' : 
+                'text-muted-foreground'
+              }`}>
+                {remainingChars} caracteres
+              </div>
+            )}
+          </div>
+          <Button 
+            onClick={handleSend} 
+            disabled={disabled || !message.trim() || message.length < 3 || isOverLimit}
+            size="lg"
+            className="h-12 px-5 rounded-xl institutional-gradient hover:opacity-90 transition-all duration-200 shadow-lg shadow-primary/20 disabled:shadow-none"
           >
-            <Sparkles className="w-3 h-3 text-accent" />
-            {query.length > 40 ? query.slice(0, 40) + '...' : query}
-          </button>
-        ))}
-      </div>
-
-      {/* Input form */}
-      <form onSubmit={handleSubmit} className="flex gap-3">
-        <div className="flex-1 relative">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={disabled 
-              ? "Selecione pelo menos um documento para iniciar..." 
-              : "Digite sua pergunta sobre os documentos selecionados..."
-            }
-            disabled={isLoading || disabled}
-            className="min-h-[52px] max-h-[200px] resize-none pr-4"
-            rows={1}
-          />
+            {disabled ? (
+              <Sparkles className="w-5 h-5 animate-pulse" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
+          </Button>
         </div>
-        <Button 
-          type="submit" 
-          disabled={!input.trim() || isLoading || disabled}
-          className="h-[52px] px-6 gap-2"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Analisando...
-            </>
+        <p className="text-xs text-muted-foreground text-center mt-3">
+          {message.length < 3 && message.length > 0 ? (
+            <span className="text-orange-500">Mínimo de 3 caracteres</span>
           ) : (
-            <>
-              <Send className="w-4 h-4" />
-              Enviar
-            </>
+            <>Respostas baseadas em documentos institucionais homologados</>
           )}
-        </Button>
-      </form>
-
-      {disabled && (
-        <p className="text-xs text-warning mt-2 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-          Selecione documentos no painel lateral para habilitar consultas
         </p>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+export default ChatInput;

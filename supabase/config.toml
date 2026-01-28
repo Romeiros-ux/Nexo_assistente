@@ -1,7 +1,0 @@
-project_id = "tbrzrsvokzigmiprzhbb"
-
-[functions.admin-users]
-verify_jwt = false
-
-[functions.chat-query]
-verify_jwt = false

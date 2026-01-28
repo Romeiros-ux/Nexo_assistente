@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-01-12T14:26:53.843Z",
+  "results": [
+    {
+      "fileName": "lei-ordinria-22322022.pdf",
+      "status": "success",
+      "uploadedAt": "2026-01-12T14:26:33.355Z"
+    },
+    {
+      "fileName": "lei-ordinria-26672024.pdf",
+      "status": "success",
+      "uploadedAt": "2026-01-12T14:26:37.440Z"
+    },
+    {
+      "fileName": "lei-ordinria-971993.pdf",
+      "status": "success",
+      "uploadedAt": "2026-01-12T14:26:41.780Z"
+    },
+    {
+      "fileName": "lei-orgnica-municipal-10812010.pdf",
+      "status": "success",
+      "uploadedAt": "2026-01-12T14:26:45.551Z"
+    },
+    {
+      "fileName": "lista-de-ceps-de-saquarema.pdf",
+      "status": "success",
+      "uploadedAt": "2026-01-12T14:26:48.457Z"
+    },
+    {
+      "fileName": "plano-municipal-de-educao---saquarema.pdf",
+      "status": "success",
+      "uploadedAt": "2026-01-12T14:26:51.838Z"
+    }
+  ]
+}

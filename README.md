@@ -1,24 +1,26 @@
-# Nexo Assistente - Sistema de Gestão Documental Educacional
+# Welcome to your Lovable project
 
-Sistema de gestão documental com IA para instituições educacionais, permitindo upload, classificação automática e consulta inteligente de documentos.
+## Project info
 
-## 🚀 Tecnologias
+**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
-- **Frontend**: React 18 + TypeScript + Vite + Shadcn/ui
-- **Backend**: Supabase (PostgreSQL + Edge Functions)
-- **IA**: Google Gemini 1.5 Flash
-- **Deployment**: Render (Frontend) + Supabase (Backend)
+## How can I edit this code?
 
-## 📋 Pré-requisitos
+There are several ways of editing your application.
 
-- Node.js 18+ e npm
-- Conta Supabase (projeto: tbrzrsvokzigmiprzhbb)
-- Chave da API do Google Gemini
-- Conta no Render (para deploy)
+**Use Lovable**
 
-## ⚙️ Configuração
+Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-### 1. Clonar o Repositório
+Changes made via Lovable will be committed automatically to this repo.
+
+**Use your preferred IDE**
+
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
@@ -47,131 +49,104 @@ npm run dev
 - Select the "Codespaces" tab.
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
-```sh
-git clone https://github.com/seu-usuario/Nexo_assistente.git
-cd Nexo_assistente
-```
 
-### 2. Instalar Dependências
+## What technologies are used for this project?
 
-```sh
-npm install
-```
+This project is built with:
 
-### 3. Configurar Variáveis de Ambiente
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-Crie um arquivo `.env` na raiz do projeto:
+## How can I deploy this project?
 
-```env
-VITE_SUPABASE_URL=https://tbrzrsvokzigmiprzhbb.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_anon_aqui
-VITE_SUPABASE_PROJECT_ID=tbrzrsvokzigmiprzhbb
-```
+Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
-### 4. Configurar Google Gemini API
+## Can I connect a custom domain to my Lovable project?
 
-**IMPORTANTE**: Você precisa configurar a chave do Google Gemini no Supabase para que o sistema funcione.
+Yes, you can!
 
-Consulte o guia completo: [GOOGLE_GEMINI_SETUP.md](./GOOGLE_GEMINI_SETUP.md)
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Resumo:
-1. Obtenha uma chave em: https://makersuite.google.com/app/apikey
-2. Configure no Supabase: `Settings > Edge Functions > Secrets`
-3. Nome: `GOOGLE_AI_API_KEY`
-4. Valor: Sua chave do Google
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
-### 5. Rodar Localmente
+---
 
-```sh
-npm run dev
-```
+## 🚀 Melhorias Recentes
 
-Acesse: http://localhost:8080
+### ✅ FASE 1: Metadata Enriquecida no Prompt (15/01/2026)
 
-## 🏗️ Estrutura do Projeto
+**Objetivo:** Tornar respostas mais precisas mostrando ano, etapa educacional e categoria de cada documento.
 
-```
-Nexo_assistente/
-├── src/
-│   ├── components/      # Componentes React
-│   ├── contexts/        # Context API (Auth)
-│   ├── hooks/          # Custom hooks
-│   ├── integrations/   # Supabase client
-│   ├── lib/            # Utilitários
-│   ├── pages/          # Páginas da aplicação
-│   └── types/          # TypeScript types
-├── supabase/
-│   ├── functions/      # Edge Functions (Deno)
-│   │   ├── chat-query/
-│   │   ├── documents-ingest/
-│   │   ├── documents-ingest-link/
-│   │   └── admin-users/
-│   └── migrations/     # Schema do banco
-├── public/             # Assets estáticos
-└── docs/              # Documentação
+**Implementado:**
+- ✅ Interface `ChatContext` atualizada com campo `metadata` opcional
+- ✅ Display de ano nos chunks (ex: 📅 Ano: 2023)
+- ✅ Display de etapa educacional com labels descritivas:
+  - AI → Anos Iniciais (1º-5º ano)
+  - AF → Anos Finais (6º-9º ano)
+  - EM → Ensino Médio
+  - EI → Educação Infantil
+- ✅ Display de categoria/subdomain (ex: 📊 Categoria: IDEB)
+- ✅ Emojis para melhor visualização (📅 📊 🎓 🎯)
+- ✅ Metadata pass-through em `chat.service.ts`
+- ✅ Testes unitários e de integração criados
 
-```
+**Impacto:**
+- Respostas agora mencionam explicitamente ano e etapa (ex: "Em 2023, os Anos Iniciais...")
+- LLM tem contexto temporal para distinguir entre diferentes anos
+- Melhor compreensão de perguntas como "Qual o IDEB de 2023?"
 
-## 📦 Deploy
+**Arquivos modificados:**
+- `backend/src/prompts/master.prompt.ts`
+- `backend/src/services/chat.service.ts`
+- `backend/scripts/test-metadata-enriched.ts` (novo)
+- `backend/scripts/test-chat-integration.mjs` (novo)
 
-### Frontend (Render)
+---
 
-Consulte: [DEPLOY_RENDER.md](./DEPLOY_RENDER.md)
+### ✅ FASE 2: Histórico de Conversação (15/01/2026)
 
-### Backend (Supabase)
+**Objetivo:** Permitir perguntas de acompanhamento sem repetir contexto, mantendo histórico da sessão.
 
-As Edge Functions já foram deployadas. Para atualizações:
+**Implementado:**
+- ✅ Tabelas `conversations` e `conversation_messages` no Supabase
+- ✅ `ConversationService` para gerenciar histórico de conversas
+- ✅ Integração do histórico no `chat.service.ts`
+- ✅ Interface `ChatContext` atualizada com `conversationHistory`
+- ✅ Função `buildChatPrompt()` inclui histórico formatado
+- ✅ `ChatRequest` e `ChatResponse` com campo `conversationId`
+- ✅ Novos endpoints REST:
+  - `GET /api/chat/conversations` - Listar conversas
+  - `GET /api/chat/conversations/:id/messages` - Mensagens de uma conversa
+  - `DELETE /api/chat/conversations/:id` - Deletar conversa
+- ✅ RLS (Row Level Security) - usuário só vê suas conversas
+- ✅ Trigger automático para atualizar `updated_at`
+- ✅ Testes de fluxo conversacional e endpoints
 
-```sh
-supabase link --project-ref tbrzrsvokzigmiprzhbb
-supabase functions deploy
-```
+**Impacto:**
+- 🎯 Perguntas de acompanhamento agora funcionam!
+  - "Qual o IDEB de 2023?" → "E dos anos finais?" → "E em 2024?"
+- 💬 Sistema mantém contexto entre perguntas da mesma sessão
+- 📝 Histórico visível: "👤 Usuário: ... / 🤖 Assistente: ..."
+- 🔒 Segurança: cada usuário vê apenas suas conversas (RLS)
 
-## 🔐 Sistema de Permissões
+**Arquivos modificados:**
+- `backend/migrations/create-conversations-tables.sql` (novo)
+- `backend/src/types/conversation.types.ts` (novo)
+- `backend/src/services/conversation.service.ts` (novo)
+- `backend/src/services/chat.service.ts`
+- `backend/src/prompts/master.prompt.ts`
+- `backend/src/routes/chat.routes.ts`
+- `backend/scripts/test-conversation-flow.mjs` (novo)
+- `backend/scripts/test-conversation-endpoints.ps1` (novo)
 
-O sistema usa controle de acesso baseado em funções (RBAC):
+**Como testar:**
+1. Backend: `npm run dev`
+2. Testes automatizados: 
+   - `node scripts/test-conversation-flow.mjs`
+   - `.\scripts\test-conversation-endpoints.ps1`
+3. Manual: Faça perguntas sequenciais e veja o contexto sendo mantido
 
-- **ti**: Acesso total (upload, gerenciamento de usuários, configurações)
-- **secretaria**: Upload e edição de documentos
-- **coordenacao**: Visualização e consulta
-- **diretor**: Visualização e consulta
-
-## 🤖 Funcionalidades de IA
-
-### Chat Inteligente
-- Busca semântica em documentos usando tsvector
-- Respostas contextualizadas pelo Google Gemini
-- Histórico de conversas persistente
-
-### Classificação Automática
-- Área temática
-- Tipo de documento (normativo, relatório, plano, etc.)
-- Ano de referência, datas de vigência
-- Tags e palavras-chave automáticas
-
-### Suporte a Múltiplos Formatos
-- PDF, Word (DOCX), Excel (XLSX)
-- PowerPoint (PPTX)
-- Arquivos de texto (TXT, MD, CSV, JSON, XML, HTML)
-- Captura de conteúdo de URLs
-
-## 📚 Documentação Adicional
-
-- [Configuração Google Gemini](./GOOGLE_GEMINI_SETUP.md)
-- [Deploy no Render](./DEPLOY_RENDER.md)
-- [Análise Técnica Completa](./ANALISE_COMPLETA.md)
-
-## 🐛 Troubleshooting
-
-### Erro: "GOOGLE_AI_API_KEY is not configured"
-Configure a chave do Google Gemini seguindo [GOOGLE_GEMINI_SETUP.md](./GOOGLE_GEMINI_SETUP.md)
-
-### Erro de autenticação
-Verifique se as variáveis `VITE_SUPABASE_*` estão corretas no `.env`
-
-### Edge Functions não respondem
-Verifique os logs: https://supabase.com/dashboard/project/tbrzrsvokzigmiprzhbb/logs/edge-functions
-
-## 📄 Licença
-
-Este projeto é privado e proprietário.
+**Próximo:** FASE 3 - Cache de Embeddings (economia de custos - opcional)

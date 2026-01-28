@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Permissões</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .info { background: #e3f2fd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .warning { background: #fff3e0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Permissões - Base de Conhecimento</h1>
+    
+    <div id="result"></div>
+
+    <script>
+        // Verifica localStorage
+        const token = localStorage.getItem('token');
+        const userStr = localStorage.getItem('user');
+        
+        const resultDiv = document.getElementById('result');
+        
+        if (!token) {
+            resultDiv.innerHTML = '<div class="error"><strong>❌ Token não encontrado!</strong><br>Você não está autenticado.</div>';
+        } else {
+            resultDiv.innerHTML += '<div class="info"><strong>✅ Token encontrado</strong></div>';
+        }
+        
+        if (!userStr) {
+            resultDiv.innerHTML += '<div class="error"><strong>❌ Dados de usuário não encontrados!</strong></div>';
+        } else {
+            try {
+                const user = JSON.parse(userStr);
+                const role = user.role || 'NÃO DEFINIDA';
+                const isTI = role === 'TI' || role === 'SECRETARIA';
+                const isComissao = role === 'COMISSAO';
+                const canUpload = isTI || isComissao;
+                const canManage = isTI;
+                
+                resultDiv.innerHTML += `
+                    <div class="info">
+                        <h3>Informações do Usuário:</h3>
+                        <pre>${JSON.stringify(user, null, 2)}</pre>
+                    </div>
+                    
+                    <div class="${canUpload ? 'info' : 'warning'}">
+                        <h3>Permissões:</h3>
+                        <ul>
+                            <li><strong>Role:</strong> ${role}</li>
+                            <li><strong>É TI:</strong> ${isTI ? '✅ SIM' : '❌ NÃO'}</li>
+                            <li><strong>É COMISSAO:</strong> ${isComissao ? '✅ SIM' : '❌ NÃO'}</li>
+                            <li><strong>Pode fazer Upload:</strong> ${canUpload ? '✅ SIM' : '❌ NÃO'}</li>
+                            <li><strong>Pode Gerenciar (Ativar/Deletar):</strong> ${canManage ? '✅ SIM' : '❌ NÃO'}</li>
+                            <li><strong>Pode Editar:</strong> ${canUpload ? '✅ SIM' : '❌ NÃO'}</li>
+                        </ul>
+                    </div>
+                `;
+                
+                if (!canUpload) {
+                    resultDiv.innerHTML += `
+                        <div class="warning">
+                            <h3>⚠️ ATENÇÃO!</h3>
+                            <p>Seu usuário atual (<strong>${role}</strong>) NÃO tem permissão para:</p>
+                            <ul>
+                                <li>Ver o botão "Adicionar Documento"</li>
+                                <li>Ver o botão "Editar" nos documentos</li>
+                            </ul>
+                            <p><strong>Roles com permissão:</strong> TI, SECRETARIA, COMISSAO</p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                resultDiv.innerHTML += `<div class="error"><strong>❌ Erro ao parsear dados do usuário:</strong><br>${e.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

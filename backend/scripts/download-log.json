@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-01-12T13:52:48.184Z",
+  "results": [
+    {
+      "id": 1,
+      "title": "Plano Municipal de Educação - Saquarema",
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2025/06/plano-municipal-de-educacao-saquarema.pdf",
+      "status": "success",
+      "filePath": "C:\\Users\\usuario\\Documents\\GitHub\\edu-ia-assistente\\backend\\scripts\\downloads\\plano-municipal-de-educao---saquarema.pdf",
+      "size": 699140,
+      "downloadedAt": "2026-01-12T13:52:41.798Z"
+    },
+    {
+      "id": 2,
+      "title": "Lei Orgânica Municipal 1081/2010",
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2018/01/LO-1081-2010.pdf",
+      "status": "success",
+      "filePath": "C:\\Users\\usuario\\Documents\\GitHub\\edu-ia-assistente\\backend\\scripts\\downloads\\lei-orgnica-municipal-10812010.pdf",
+      "size": 1425217,
+      "downloadedAt": "2026-01-12T13:52:42.871Z"
+    },
+    {
+      "id": 3,
+      "title": "Lei Ordinária 2232/2022",
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2022/04/LO-2232-2022.pdf",
+      "status": "success",
+      "filePath": "C:\\Users\\usuario\\Documents\\GitHub\\edu-ia-assistente\\backend\\scripts\\downloads\\lei-ordinria-22322022.pdf",
+      "size": 1286920,
+      "downloadedAt": "2026-01-12T13:52:43.931Z"
+    },
+    {
+      "id": 4,
+      "title": "Lei Ordinária 2667/2024",
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2024/12/LO-2667-2024.pdf",
+      "status": "success",
+      "filePath": "C:\\Users\\usuario\\Documents\\GitHub\\edu-ia-assistente\\backend\\scripts\\downloads\\lei-ordinria-26672024.pdf",
+      "size": 487726,
+      "downloadedAt": "2026-01-12T13:52:44.993Z"
+    },
+    {
+      "id": 5,
+      "title": "Lei Ordinária 97/1993",
+      "url": "https://transparencia.saquarema.rj.gov.br/wp-content/uploads/2018/02/LO-97-1993.pdf",
+      "status": "success",
+      "filePath": "C:\\Users\\usuario\\Documents\\GitHub\\edu-ia-assistente\\backend\\scripts\\downloads\\lei-ordinria-971993.pdf",
+      "size": 3824256,
+      "downloadedAt": "2026-01-12T13:52:46.100Z"
+    },
+    {
+      "id": 6,
+      "title": "Lista de CEPs de Saquarema",
+      "url": "https://www.saquarema.rj.gov.br/wp-content/uploads/2022/03/lista-de-ceps-saquarema.pdf",
+      "status": "success",
+      "filePath": "C:\\Users\\usuario\\Documents\\GitHub\\edu-ia-assistente\\backend\\scripts\\downloads\\lista-de-ceps-de-saquarema.pdf",
+      "size": 628284,
+      "downloadedAt": "2026-01-12T13:52:47.177Z"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "success": 6,
+    "failed": 0,
+    "skipped": 0
+  }
+}

@@ -1,0 +1,526 @@
+import React, { useState } from 'react';
+import { 
+  Database, 
+  Upload, 
+  FileText, 
+  Globe, 
+  Plus, 
+  Trash2, 
+  ExternalLink,
+  ToggleLeft,
+  ToggleRight,
+  FileSpreadsheet,
+  File,
+  Link2,
+  CheckCircle2,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AdminLayout from '@/components/AdminLayout';
+
+// Mock data
+const mockDocuments = [
+  {
+    id: '1',
+    name: 'Plano Municipal de Educação 2024-2034',
+    type: 'PDF',
+    date: '2024-01-15',
+    status: 'active',
+    category: 'Planejamento',
+  },
+  {
+    id: '2',
+    name: 'Relatório de Desempenho Escolar - 2023',
+    type: 'PDF',
+    date: '2024-02-20',
+    status: 'active',
+    category: 'Relatórios',
+  },
+  {
+    id: '3',
+    name: 'Indicadores Educacionais Consolidados',
+    type: 'Planilha',
+    date: '2024-03-10',
+    status: 'active',
+    category: 'Dados',
+  },
+  {
+    id: '4',
+    name: 'Diretrizes Curriculares Municipais',
+    type: 'PDF',
+    date: '2023-08-05',
+    status: 'inactive',
+    category: 'Normativos',
+  },
+];
+
+const mockSources = [
+  {
+    id: '1',
+    name: 'Portal QEdu',
+    url: 'https://qedu.org.br',
+    type: 'external',
+    status: 'active',
+  },
+  {
+    id: '2',
+    name: 'INEP - Dados Educacionais',
+    url: 'https://www.gov.br/inep',
+    type: 'external',
+    status: 'active',
+  },
+  {
+    id: '3',
+    name: 'Portal da Secretaria de Educação',
+    url: 'https://educacao.municipio.gov.br',
+    type: 'internal',
+    status: 'active',
+  },
+];
+
+const getFileIcon = (type: string) => {
+  switch (type) {
+    case 'PDF':
+      return <FileText className="w-5 h-5 text-red-500" />;
+    case 'Planilha':
+      return <FileSpreadsheet className="w-5 h-5 text-green-600" />;
+    default:
+      return <File className="w-5 h-5 text-muted-foreground" />;
+  }
+};
+
+const KnowledgeBase: React.FC = () => {
+  const [documents, setDocuments] = useState(mockDocuments);
+  const [sources, setSources] = useState(mockSources);
+  const [isDocDialogOpen, setIsDocDialogOpen] = useState(false);
+  const [isSourceDialogOpen, setIsSourceDialogOpen] = useState(false);
+  const [newDoc, setNewDoc] = useState({ name: '', type: '', category: '' });
+  const [newSource, setNewSource] = useState({ name: '', url: '', type: 'internal' });
+
+  const toggleDocStatus = (id: string) => {
+    setDocuments(prev => prev.map(doc => 
+      doc.id === id 
+        ? { ...doc, status: doc.status === 'active' ? 'inactive' : 'active' }
+        : doc
+    ));
+  };
+
+  const toggleSourceStatus = (id: string) => {
+    setSources(prev => prev.map(source => 
+      source.id === id 
+        ? { ...source, status: source.status === 'active' ? 'inactive' : 'active' }
+        : source
+    ));
+  };
+
+  const handleAddDocument = () => {
+    if (newDoc.name && newDoc.type) {
+      setDocuments(prev => [...prev, {
+        id: Date.now().toString(),
+        name: newDoc.name,
+        type: newDoc.type,
+        date: new Date().toISOString().split('T')[0],
+        status: 'active',
+        category: newDoc.category || 'Geral',
+      }]);
+      setNewDoc({ name: '', type: '', category: '' });
+      setIsDocDialogOpen(false);
+    }
+  };
+
+  const handleAddSource = () => {
+    if (newSource.name && newSource.url) {
+      setSources(prev => [...prev, {
+        id: Date.now().toString(),
+        name: newSource.name,
+        url: newSource.url,
+        type: newSource.type,
+        status: 'active',
+      }]);
+      setNewSource({ name: '', url: '', type: 'internal' });
+      setIsSourceDialogOpen(false);
+    }
+  };
+
+  const activeDocuments = documents.filter(d => d.status === 'active').length;
+  const activeSources = sources.filter(s => s.status === 'active').length;
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-3">
+            <Database className="w-7 h-7 text-primary" />
+            Base de Dados do Assistente
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie os documentos e fontes que alimentam a inteligência do sistema.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="card-premium p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{documents.length}</p>
+                <p className="text-sm text-muted-foreground">Documentos</p>
+              </div>
+            </div>
+          </div>
+          <div className="card-premium p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{activeDocuments}</p>
+                <p className="text-sm text-muted-foreground">Ativos</p>
+              </div>
+            </div>
+          </div>
+          <div className="card-premium p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                <Globe className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{activeSources}</p>
+                <p className="text-sm text-muted-foreground">Fontes Externas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="documents" className="space-y-4">
+          <TabsList className="bg-muted/50">
+            <TabsTrigger value="documents" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Documentos
+            </TabsTrigger>
+            <TabsTrigger value="sources" className="gap-2">
+              <Globe className="w-4 h-4" />
+              Fontes Externas
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Documents Tab */}
+          <TabsContent value="documents" className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="bg-accent/50 border border-border rounded-lg p-3 flex-1">
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Fontes prioritárias:</strong> Estes documentos são as fontes prioritárias para as respostas do assistente.
+                </p>
+              </div>
+              
+              <Dialog open={isDocDialogOpen} onOpenChange={setIsDocDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="institutional-gradient shrink-0">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Adicionar Documento
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="font-display">Adicionar Documento</DialogTitle>
+                    <DialogDescription>
+                      Cadastre um novo documento para a base de conhecimento.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Nome do documento</Label>
+                      <Input
+                        value={newDoc.name}
+                        onChange={(e) => setNewDoc(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Ex: Relatório Anual 2024"
+                        className="input-field"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Tipo</Label>
+                        <Select
+                          value={newDoc.type}
+                          onValueChange={(value) => setNewDoc(prev => ({ ...prev, type: value }))}
+                        >
+                          <SelectTrigger className="input-field">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PDF">PDF</SelectItem>
+                            <SelectItem value="Planilha">Planilha</SelectItem>
+                            <SelectItem value="Documento">Documento</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Categoria</Label>
+                        <Select
+                          value={newDoc.category}
+                          onValueChange={(value) => setNewDoc(prev => ({ ...prev, category: value }))}
+                        >
+                          <SelectTrigger className="input-field">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Planejamento">Planejamento</SelectItem>
+                            <SelectItem value="Relatórios">Relatórios</SelectItem>
+                            <SelectItem value="Dados">Dados</SelectItem>
+                            <SelectItem value="Normativos">Normativos</SelectItem>
+                            <SelectItem value="Geral">Geral</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center bg-muted/20">
+                      <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Arraste um arquivo ou clique para selecionar
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PDF, DOCX, XLSX até 20MB
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button variant="outline" onClick={() => setIsDocDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button 
+                        className="institutional-gradient"
+                        onClick={handleAddDocument}
+                        disabled={!newDoc.name || !newDoc.type}
+                      >
+                        Adicionar
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Documents List */}
+            <div className="card-premium overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30">
+                      <th className="text-left p-4 font-medium text-sm text-muted-foreground">Documento</th>
+                      <th className="text-left p-4 font-medium text-sm text-muted-foreground hidden sm:table-cell">Categoria</th>
+                      <th className="text-left p-4 font-medium text-sm text-muted-foreground hidden md:table-cell">Data</th>
+                      <th className="text-center p-4 font-medium text-sm text-muted-foreground">Status</th>
+                      <th className="text-right p-4 font-medium text-sm text-muted-foreground">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {documents.map((doc, index) => (
+                      <tr 
+                        key={doc.id} 
+                        className={`border-b border-border last:border-0 hover:bg-muted/20 transition-colors ${
+                          index % 2 === 0 ? 'bg-transparent' : 'bg-muted/10'
+                        }`}
+                      >
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            {getFileIcon(doc.type)}
+                            <div>
+                              <p className="font-medium text-foreground">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground">{doc.type}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 hidden sm:table-cell">
+                          <Badge variant="secondary">{doc.category}</Badge>
+                        </td>
+                        <td className="p-4 hidden md:table-cell text-sm text-muted-foreground">
+                          {new Date(doc.date).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="p-4 text-center">
+                          <Switch
+                            checked={doc.status === 'active'}
+                            onCheckedChange={() => toggleDocStatus(doc.id)}
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex justify-end">
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Sources Tab */}
+          <TabsContent value="sources" className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="bg-accent/50 border border-border rounded-lg p-3 flex-1">
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Fontes complementares:</strong> Fontes externas serão consultadas apenas quando necessário ou mediante solicitação do usuário.
+                </p>
+              </div>
+              
+              <Dialog open={isSourceDialogOpen} onOpenChange={setIsSourceDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="institutional-gradient shrink-0">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Fonte
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="font-display">Adicionar Fonte Externa</DialogTitle>
+                    <DialogDescription>
+                      Cadastre um site ou fonte institucional homologada.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Nome da fonte</Label>
+                      <Input
+                        value={newSource.name}
+                        onChange={(e) => setNewSource(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Ex: Portal do MEC"
+                        className="input-field"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>URL</Label>
+                      <Input
+                        value={newSource.url}
+                        onChange={(e) => setNewSource(prev => ({ ...prev, url: e.target.value }))}
+                        placeholder="https://..."
+                        className="input-field"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Classificação</Label>
+                      <Select
+                        value={newSource.type}
+                        onValueChange={(value) => setNewSource(prev => ({ ...prev, type: value }))}
+                      >
+                        <SelectTrigger className="input-field">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="internal">Fonte Interna</SelectItem>
+                          <SelectItem value="external">Fonte Externa Homologada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button variant="outline" onClick={() => setIsSourceDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button 
+                        className="institutional-gradient"
+                        onClick={handleAddSource}
+                        disabled={!newSource.name || !newSource.url}
+                      >
+                        Adicionar
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Sources List */}
+            <div className="grid gap-4">
+              {sources.map(source => (
+                <div 
+                  key={source.id}
+                  className="card-premium p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      source.type === 'internal' 
+                        ? 'bg-primary/10' 
+                        : 'bg-blue-100'
+                    }`}>
+                      {source.type === 'internal' 
+                        ? <Link2 className="w-5 h-5 text-primary" />
+                        : <Globe className="w-5 h-5 text-blue-600" />
+                      }
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{source.name}</p>
+                      <a 
+                        href={source.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline flex items-center gap-1"
+                      >
+                        {source.url}
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <Badge className={`${
+                      source.type === 'internal' 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'bg-blue-100 text-blue-800'
+                    } border-0`}>
+                      {source.type === 'internal' ? 'Interna' : 'Externa'}
+                    </Badge>
+                    <Switch
+                      checked={source.status === 'active'}
+                      onCheckedChange={() => toggleSourceStatus(source.id)}
+                    />
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default KnowledgeBase;

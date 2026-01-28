@@ -1,0 +1,9 @@
+# Este arquivo mantém a pasta services/ no controle de versão
+# A pasta está preparada para receber os serviços da aplicação
+# 
+# Services contêm a lógica de negócio da aplicação
+# Exemplos futuros:
+# - user.service.ts
+# - conversation.service.ts
+# - message.service.ts
+# - ai.service.ts
