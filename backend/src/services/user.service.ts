@@ -108,7 +108,7 @@ export class UserService {
     return this.userRepository.create({
       ...validatedData,
       password: hashedPassword,
-    });
+    } as any);
   }
 
   /**

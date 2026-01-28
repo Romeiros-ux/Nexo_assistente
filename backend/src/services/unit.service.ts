@@ -122,7 +122,7 @@ export class EducationalUnitService {
     const validatedData = createUnitSchema.parse(unitData);
 
     // Cria unidade
-    return this.unitRepository.create(validatedData);
+    return this.unitRepository.create(validatedData as CreateEducationalUnitDTO);
   }
 
   /**

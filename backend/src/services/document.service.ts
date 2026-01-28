@@ -98,7 +98,7 @@ class DocumentService {
    * Upload completo: arquivo + metadados
    */
   async uploadDocument(
-    file: Express.Multer.File | undefined,
+    file: any | undefined,
     metadata: CreateDocumentRequest,
     userId: string
   ): Promise<Document> {

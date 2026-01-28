@@ -41,7 +41,7 @@ const storage = multer.memoryStorage();
 // FILE FILTER
 // ==========================================
 
-const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (_req: any, file: any, cb: multer.FileFilterCallback) => {
   // Valida tipo de arquivo
   if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
     cb(null, true);

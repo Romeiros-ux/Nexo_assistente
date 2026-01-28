@@ -50,7 +50,7 @@ class StorageService {
    * Faz upload de arquivo para o Supabase Storage
    */
   async uploadFile(
-    file: Express.Multer.File,
+    file: any,
     documentType: string
   ): Promise<UploadResult> {
     try {
