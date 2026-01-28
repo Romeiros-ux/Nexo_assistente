@@ -306,7 +306,7 @@ class SearchService {
         console.log(`[SearchService] Re-ranking aplicado (top result score: ${reRankedResults[0]?.rerank_score?.toFixed(3) || 'N/A'})`);
         
         // 6.1. Se for query de autoridade, priorizar documento mais recente
-        if (isAutoridadeQuery && reRankedResults.length > 0) {
+        if (this.isAutoridadeQuery(searchQuery.query) && reRankedResults.length > 0) {
           console.log('[SearchService] 👔 Ordenando por data (mais recente primeiro) para query de autoridades');
           reRankedResults.sort((a: any, b: any) => {
             // Priorizar por data de upload (mais recente primeiro)
